@@ -30,6 +30,8 @@
 #endif
 typedef bool bool;
 
+typedef float (*mapper)(float x);
+
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 /* we define our matrix as a structure
  * the structure contains information and the data for the matrix
@@ -51,13 +53,13 @@ matrix *create_matrix(int rows, int columns)
 {
 	if(rows <= 0 || columns <=0)
 	{
-		printf("Error: Invalid rows or columns value\n");
+		printf("Error: Invalid rows or columns value in %s\n",__func__);
 		return (NULL);
 	}
 	matrix *m = (matrix*)malloc(sizeof(matrix));
 	if(m == NULL)
 	{
-		perror("unable to allocate memory for matrix frame");
+		perror("unable to allocate memory for matrix frame\n");
 		return(NULL);
 	}
 	// success
@@ -780,5 +782,44 @@ matrix *get_col(matrix *m, int c)
 		res->data[res->cols*i+0]= m->data[m->cols*i+c];
 	}
 	return(res);
+}
+/* matrix_map
+ * iterates through all elements and replace each with result of the map function.
+ * input: matrix pointer and a function pointer to a mapping function
+ * returns the matrix
+ */
+matrix *matrix_map(matrix *m, mapper f)
+{
+	if(!is_valid(m))
+	{
+		printf("Error: Invalid or un initialized matrix\n");
+		return(NULL);
+	}
+	for(int i = 0; i< m->rows * m->cols;i++)
+	{
+		m->data[i] = f(m->data[i]);
+	}
+	return (m);
+}
+matrix *mat_mult_hadamard(matrix *m1,matrix *m2)
+{
+	if(!is_valid(m1) || !is_valid(m2))
+	{
+		printf("Error: invalid matrices\n");
+		return(NULL);
+	}
+	if(m1->rows != m2->rows || m1->cols != m2->cols)
+	{
+		printf("Error: Dimension are not same\n");
+		return(NULL);
+	}
+	matrix *res = create_matrix(m1->rows,m1->cols);
+	if(!res)
+		return(NULL);
+	for(int i = 0; i< m1->rows * m1->cols;i++)
+	{
+		res->data[i] = m1->data[i] * m2->data[i];
+	}
+	return (res);
 }
 #endif /* __TMAT_LIB__ */
